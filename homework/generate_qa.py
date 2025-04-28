@@ -152,7 +152,72 @@ def extract_kart_objects(
         - is_center_kart: Boolean indicating if this is the kart closest to image center
     """
 
-    raise NotImplementedError("Not implemented")
+    # read the info.json file from the info_path
+    with open(info_path) as f:
+        info = json.load(f)
+    # Extract detections for the specified view index
+    if view_index >= len(info["detections"]):
+        raise ValueError(f"View index {view_index} out of range for detections")
+
+    kart_names = info.get("karts")
+    frame_detections = info["detections"][view_index]
+    kart_objects = []
+
+    # Calculate scaling factors
+    scale_x = img_width / ORIGINAL_WIDTH
+    scale_y = img_height / ORIGINAL_HEIGHT
+
+    image_center = (img_width // 2, img_height // 2)
+    min_distance = float("inf")
+    center_kart_id = None
+
+    for detection in frame_detections:
+        class_id, track_id, x1, y1, x2, y2 = detection
+        class_id, track_id = int(class_id), int(track_id)
+
+        if class_id != 1:
+            continue
+        # Scale coordinates to fit the current image size
+        x1_scaled = int(x1 * scale_x)
+        y1_scaled = int(y1 * scale_y)
+        x2_scaled = int(x2 * scale_x)
+        y2_scaled = int(y2 * scale_y)
+
+        box_width = x2_scaled - x1_scaled
+        box_height = y2_scaled - y1_scaled
+
+        # Skip if bounding box is too small
+        if box_width < min_box_size or box_height < min_box_size:
+            continue
+
+        if x2_scaled < 0 or x1_scaled > img_width or y2_scaled < 0 or y1_scaled > img_height:
+            continue
+
+        # Calculate center of the bounding box
+        kart_center = ((x1 + x2) / 2, (y1 + y2) / 2)
+        distance_to_center = np.linalg.norm(np.array(kart_center) - np.array(image_center))
+
+        if distance_to_center < min_distance:
+            min_distance = distance_to_center
+            center_kart_id = track_id
+
+        kart_objects.append(
+            {
+                "instance_id": track_id,
+                "kart_name": kart_names[track_id],
+                "center": kart_center,
+                "is_center_kart": False,
+            }
+        )
+
+    # Mark the center kart
+    for kart in kart_objects:
+        if kart["instance_id"] == center_kart_id:
+            kart["is_center_kart"] = True
+
+    return kart_objects
+
+
 
 def extract_track_info(info_path: str) -> str:
     """
@@ -164,9 +229,12 @@ def extract_track_info(info_path: str) -> str:
     Returns:
         Track name as a string
     """
-
-    raise NotImplementedError("Not implemented")
-
+    # read the info.json file from the info_path
+    with open(info_path) as f:
+        info = json.load(f)
+    # Extract track name
+    track_name = info.get("track_name", "Unknown Track")
+    return track_name
 
 def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img_height: int = 100) -> list:
     """
@@ -181,18 +249,60 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
     Returns:
         List of dictionaries, each containing a question and answer
     """
+
+    kart_objects = extract_kart_objects(info_path, view_index, img_width, img_height)
+    track_name = extract_track_info(info_path)
+    qa_pairs = []
+
     # 1. Ego car question
     # What kart is the ego car?
+    ego_kart = next((kart for kart in kart_objects if kart["is_center_kart"]), None)
+    if ego_kart:
+        qa_pairs.append(
+            {
+                "question": f"What kart is the ego car?",
+                "answer": ego_kart["kart_name"],
+            }
+        )
 
     # 2. Total karts question
     # How many karts are there in the scenario?
+    qa_pairs.append({
+        "question": "How many karts are there in the scenario?",
+        "answer": str(len(kart_objects))
+    })
 
     # 3. Track information questions
     # What track is this?
+    qa_pairs.append({
+        "question": "What track is this?",
+        "answer": track_name
+    })
 
     # 4. Relative position questions for each kart
     # Is {kart_name} to the left or right of the ego car?
     # Is {kart_name} in front of or behind the ego car?
+    for kart in kart_objects:
+        if kart["is_center_kart"]:
+            continue
+
+        kart_center = np.array(kart["center"])
+        ego_center = np.array(ego_kart["center"])
+        horizontal = "left" if kart_center[0] <= ego_center[0] else "right"
+        vertical = "front" if kart_center[1] <= ego_center[1] else "behind"
+        qa_pairs.append(
+            {
+                "question": f"Is {kart['kart_name']} to the left or right of the ego car?",
+                "answer": horizontal,
+            }
+        )
+        qa_pairs.append(
+            {
+                "question": f"Is {kart['kart_name']} in front of or behind the ego car?",
+                "answer": vertical,
+            }
+        )
+
 
     # 5. Counting questions
     # How many karts are to the left of the ego car?
@@ -200,8 +310,37 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
     # How many karts are in front of the ego car?
     # How many karts are behind the ego car?
 
-    raise NotImplementedError("Not implemented")
+    left_count = sum(1 for kart in kart_objects if kart["center"][0] <= ego_kart["center"][0] and not kart["is_center_kart"])
+    right_count = sum(1 for kart in kart_objects if kart["center"][0] > ego_kart["center"][0] and not kart["is_center_kart"])
+    front_count = sum(1 for kart in kart_objects if kart["center"][1] <= ego_kart["center"][1] and not kart["is_center_kart"])
+    behind_count = sum(1 for kart in kart_objects if kart["center"][1] > ego_kart["center"][1] and not kart["is_center_kart"])
 
+    qa_pairs.append(
+        {
+            "question": "How many karts are to the left of the ego car?",
+            "answer": str(left_count),
+        }
+    )
+    qa_pairs.append(
+        {
+            "question": "How many karts are to the right of the ego car?",
+            "answer": str(right_count),
+        }
+    )
+    qa_pairs.append(
+        {
+            "question": "How many karts are in front of the ego car?",
+            "answer": str(front_count),
+        }
+    )
+    qa_pairs.append(
+        {
+            "question": "How many karts are behind the ego car?",
+            "answer": str(behind_count),
+        }
+    )
+
+    return qa_pairs
 
 def check_qa_pairs(info_file: str, view_index: int):
     """
