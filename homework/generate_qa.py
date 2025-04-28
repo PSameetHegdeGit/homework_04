@@ -233,7 +233,7 @@ def extract_track_info(info_path: str) -> str:
     with open(info_path) as f:
         info = json.load(f)
     # Extract track name
-    track_name = info.get("track_name", "Unknown Track")
+    track_name = info.get("track", "Unknown Track")
     return track_name
 
 def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img_height: int = 100) -> list:
