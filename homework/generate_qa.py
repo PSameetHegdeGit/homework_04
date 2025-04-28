@@ -363,6 +363,7 @@ def check_qa_pairs(info_file: str, view_index: int):
     plt.imshow(annotated_image)
     plt.axis("off")
     plt.title(f"Frame {extract_frame_info(str(image_file))[0]}, View {view_index}")
+    plt.savefig("annotated_image.png", bbox_inches="tight")
     plt.show()
 
     # Generate QA pairs
