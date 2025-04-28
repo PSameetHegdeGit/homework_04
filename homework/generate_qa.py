@@ -343,7 +343,7 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
     return qa_pairs
 
 
-def generate_all_qa_pairs(info_dir: str, view_index: int, img_width: int = 150, img_height: int = 100, qa_pairs_count=1000) -> list:
+def generate_all_qa_pairs(info_dir: str, view_index: int, img_width: int = 150, img_height: int = 100, qa_pairs_count=1000, output_dir='data/train_qa_pairs/') -> list:
     """
     Generate question-answer pairs for all info files in a directory.
 
@@ -365,7 +365,7 @@ def generate_all_qa_pairs(info_dir: str, view_index: int, img_width: int = 150, 
         print(f"Processing {info_file}")
         qa_pairs = generate_qa_pairs(str(info_file), view_index, img_width, img_height)
         info_file_name = Path(info_file).stem.replace("_info", "")
-        output_file = Path(info_file).parent / f"{info_file_name}_qa_pairs.json"
+        output_file = Path(output_dir) / f"{info_file_name}_qa_pairs.json"
         # load qa_pairs into a file using the info_file_name as a prefix
         with open(output_file, "w") as f:
             json.dump(qa_pairs, f, indent=4)
