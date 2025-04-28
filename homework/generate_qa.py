@@ -283,8 +283,6 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
     # Is {kart_name} to the left or right of the ego car?
     # Is {kart_name} in front of or behind the ego car?
     for kart in kart_objects:
-        if kart["is_center_kart"]:
-            continue
 
         kart_center = np.array(kart["center"])
         ego_center = np.array(ego_kart["center"])
@@ -310,10 +308,10 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
     # How many karts are in front of the ego car?
     # How many karts are behind the ego car?
 
-    left_count = sum(1 for kart in kart_objects if kart["center"][0] <= ego_kart["center"][0] and not kart["is_center_kart"])
-    right_count = sum(1 for kart in kart_objects if kart["center"][0] > ego_kart["center"][0] and not kart["is_center_kart"])
-    front_count = sum(1 for kart in kart_objects if kart["center"][1] <= ego_kart["center"][1] and not kart["is_center_kart"])
-    behind_count = sum(1 for kart in kart_objects if kart["center"][1] > ego_kart["center"][1] and not kart["is_center_kart"])
+    left_count = sum(1 for kart in kart_objects if kart["center"][0] <= ego_kart["center"][0])
+    right_count = sum(1 for kart in kart_objects if kart["center"][0] > ego_kart["center"][0])
+    front_count = sum(1 for kart in kart_objects if kart["center"][1] <= ego_kart["center"][1])
+    behind_count = sum(1 for kart in kart_objects if kart["center"][1] > ego_kart["center"][1])
 
     qa_pairs.append(
         {
@@ -341,6 +339,29 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
     )
 
     return qa_pairs
+
+
+def generate_all_qa_pairs(info_dir: str, view_index: int, img_width: int = 150, img_height: int = 100) -> list:
+    """
+    Generate question-answer pairs for all info files in a directory.
+
+    Args:
+        info_dir: Directory containing info.json files
+        view_index: Index of the view to analyze
+        img_width: Width of the image (default: 100)
+        img_height: Height of the image (default: 150)
+
+    Returns:
+        List of dictionaries, each containing a question and answer
+    """
+    info_files = list(Path(info_dir).glob("**/*_info.json"))
+    all_qa_pairs = []
+
+    for info_file in info_files:
+        qa_pairs = generate_qa_pairs(str(info_file), view_index, img_width, img_height)
+        all_qa_pairs.extend(qa_pairs)
+
+    return all_qa_pairs
 
 def check_qa_pairs(info_file: str, view_index: int):
     """
