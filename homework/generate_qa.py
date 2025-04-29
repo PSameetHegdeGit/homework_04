@@ -236,7 +236,7 @@ def extract_track_info(info_path: str) -> str:
     track_name = info.get("track", "Unknown Track")
     return track_name
 
-def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img_height: int = 100) -> list:
+def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img_height: int = 100):
     """
     Generate question-answer pairs for a given view.
 
@@ -262,6 +262,7 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
             {
                 "question": f"What kart is the ego car?",
                 "answer": ego_kart["kart_name"],
+                "image_file": f"{Path(info_path).stem.replace('_info', '')}_{view_index:02d}_im.jpg",
             }
         )
 
@@ -343,7 +344,7 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
     return qa_pairs
 
 
-def generate_all_qa_pairs(info_dir: str, view_index: int, img_width: int = 150, img_height: int = 100, qa_pairs_count=1000, output_dir='data/train_qa_pairs/') -> list:
+def generate_all_qa_pairs(info_dir: str, img_width: int = 150, img_height: int = 100, qa_pairs_count=1000, output_dir='data/train_qa_pairs/') -> list:
     """
     Generate question-answer pairs for all info files in a directory.
 
@@ -357,21 +358,21 @@ def generate_all_qa_pairs(info_dir: str, view_index: int, img_width: int = 150, 
         List of dictionaries, each containing a question and answer
     """
     info_files = list(Path(info_dir).glob("**/*_info.json"))
-    all_qa_pairs = []
 
     for info_file in info_files:
-        if not 0 < qa_pairs_count <= len(all_qa_pairs):
+        if not 0 < qa_pairs_count <= len(info_files):
             break
         print(f"Processing {info_file}")
-        qa_pairs = generate_qa_pairs(str(info_file), view_index, img_width, img_height)
-        info_file_name = Path(info_file).stem.replace("_info", "")
-        output_file = Path(output_dir) / f"{info_file_name}_qa_pairs.json"
-        # load qa_pairs into a file using the info_file_name as a prefix
-        with open(output_file, "w") as f:
-            json.dump(qa_pairs, f, indent=4)
+        # Assume 10 views per file
+        for view_index in range(10):
+            qa_pairs = generate_qa_pairs(str(info_file), view_index, img_width, img_height)
+            info_file_name = Path(info_file).stem.replace("_info", "")
+            output_file = Path(output_dir) / f"{info_file_name}_qa_pairs.json"
+            # load qa_pairs into a file using the info_file_name as a prefix
+            with open(output_file, "w") as f:
+                json.dump(qa_pairs, f, indent=4)
         qa_pairs_count -= 1
 
-    return all_qa_pairs
 
 def check_qa_pairs(info_file: str, view_index: int):
     """
@@ -423,3 +424,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # info_path = "../data/valid/00a0b_info.json"
+    # view_index = 3
+    # print(f"{Path(info_path).stem.replace('_info', '')}_{view_index:02d}_im.jpg")
