@@ -363,7 +363,7 @@ def process_info_file(info_file, img_width, img_height, output_dir):
     for view_index in range(10):  # Assume 10 views per file
         qa_pairs = generate_qa_pairs(str(info_file), view_index, img_width, img_height)
         info_file_name = Path(info_file).stem.replace("_info", "")
-        output_file = Path(output_dir) / f"{info_file_name}_qa_pairs.json"
+        output_file = Path(output_dir) / f"{info_file_name}_{view_index:02d}_qa_pairs.json"
         with open(output_file, "w") as f:
             json.dump(qa_pairs, f, indent=4)
 
