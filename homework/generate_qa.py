@@ -358,6 +358,7 @@ def generate_all_qa_pairs(info_dir: str, img_width: int = 150, img_height: int =
         List of dictionaries, each containing a question and answer
     """
     info_files = list(Path(info_dir).glob("**/*_info.json"))
+    Path(output_dir).parent.mkdir(parents=True, exist_ok=True)
 
     for info_file in info_files:
         if not 0 < qa_pairs_count <= len(info_files):
