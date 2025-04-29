@@ -358,7 +358,7 @@ def generate_all_qa_pairs(info_dir: str, img_width: int = 150, img_height: int =
         List of dictionaries, each containing a question and answer
     """
     info_files = list(Path(info_dir).glob("**/*_info.json"))
-    Path(output_dir).parent.mkdir(parents=True, exist_ok=True)
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     for info_file in info_files:
         if not 0 < qa_pairs_count <= len(info_files):
@@ -428,3 +428,4 @@ if __name__ == "__main__":
     # info_path = "../data/valid/00a0b_info.json"
     # view_index = 3
     # print(f"{Path(info_path).stem.replace('_info', '')}_{view_index:02d}_im.jpg")
+    # output_dir = '../data/train_qa_pairs/'
