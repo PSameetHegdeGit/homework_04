@@ -255,6 +255,7 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
     kart_objects = extract_kart_objects(info_path, view_index, img_width, img_height)
     track_name = extract_track_info(info_path)
     qa_pairs = []
+    parent = Path(info_path).stem.replace('_info', '')
 
     # 1. Ego car question
     # What kart is the ego car?
@@ -264,7 +265,7 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
             {
                 "question": f"What kart is the ego car?",
                 "answer": ego_kart["kart_name"],
-                "image_file": f"{Path(info_path).stem.replace('_info', '')}_{view_index:02d}_im.jpg",
+                "image_file": f"{parent}_{view_index:02d}_im.jpg",
             }
         )
 
@@ -272,14 +273,16 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
     # How many karts are there in the scenario?
     qa_pairs.append({
         "question": "How many karts are there in the scenario?",
-        "answer": str(len(kart_objects))
+        "answer": str(len(kart_objects)),
+        "image_file": f"{parent}_{view_index:02d}_im.jpg",
     })
 
     # 3. Track information questions
     # What track is this?
     qa_pairs.append({
         "question": "What track is this?",
-        "answer": track_name
+        "answer": track_name,
+        "image_file": f"{parent}_{view_index:02d}_im.jpg",
     })
 
     # 4. Relative position questions for each kart
@@ -297,12 +300,14 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
             {
                 "question": f"Is {kart['kart_name']} to the left or right of the ego car?",
                 "answer": horizontal,
+                "image_file": f"{parent}_{view_index:02d}_im.jpg",
             }
         )
         qa_pairs.append(
             {
                 "question": f"Is {kart['kart_name']} in front of or behind the ego car?",
                 "answer": vertical,
+                "image_file": f"{parent}_{view_index:02d}_im.jpg",
             }
         )
 
@@ -322,24 +327,28 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
         {
             "question": "How many karts are to the left of the ego car?",
             "answer": str(left_count),
+            "image_file": f"{parent}_{view_index:02d}_im.jpg",
         }
     )
     qa_pairs.append(
         {
             "question": "How many karts are to the right of the ego car?",
             "answer": str(right_count),
+            "image_file": f"{parent}_{view_index:02d}_im.jpg",
         }
     )
     qa_pairs.append(
         {
             "question": "How many karts are in front of the ego car?",
             "answer": str(front_count),
+            "image_file": f"{parent}_{view_index:02d}_im.jpg",
         }
     )
     qa_pairs.append(
         {
             "question": "How many karts are behind the ego car?",
             "answer": str(behind_count),
+            "image_file": f"{parent}_{view_index:02d}_im.jpg",
         }
     )
 
