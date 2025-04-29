@@ -5,6 +5,8 @@ import fire
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image, ImageDraw
+from concurrent.futures import ThreadPoolExecutor
+
 
 # Define object type mapping
 OBJECT_TYPES = {
@@ -344,36 +346,36 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
     return qa_pairs
 
 
-def generate_all_qa_pairs(info_dir: str, img_width: int = 150, img_height: int = 100, qa_pairs_count=1000, output_dir='data/train_qa_pairs/') -> list:
+def process_info_file(info_file, img_width, img_height, output_dir):
     """
-    Generate question-answer pairs for all info files in a directory.
+    Process a single info file and generate QA pairs for all views.
+    """
+    print(f"Processing {info_file}")
+    for view_index in range(10):  # Assume 10 views per file
+        qa_pairs = generate_qa_pairs(str(info_file), view_index, img_width, img_height)
+        info_file_name = Path(info_file).stem.replace("_info", "")
+        output_file = Path(output_dir) / f"{info_file_name}_qa_pairs.json"
+        with open(output_file, "w") as f:
+            json.dump(qa_pairs, f, indent=4)
 
-    Args:
-        info_dir: Directory containing info.json files
-        view_index: Index of the view to analyze
-        img_width: Width of the image (default: 100)
-        img_height: Height of the image (default: 150)
-
-    Returns:
-        List of dictionaries, each containing a question and answer
+def generate_all_qa_pairs(info_dir: str, img_width: int = 150, img_height: int = 100, qa_pairs_count=1000, output_dir='data/train_qa_pairs/'):
+    """
+    Generate question-answer pairs for all info files in a directory using multithreading.
     """
     info_files = list(Path(info_dir).glob("**/*_info.json"))
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-    for info_file in info_files:
-        if not 0 < qa_pairs_count <= len(info_files):
-            break
-        print(f"Processing {info_file}")
-        # Assume 10 views per file
-        for view_index in range(10):
-            qa_pairs = generate_qa_pairs(str(info_file), view_index, img_width, img_height)
-            info_file_name = Path(info_file).stem.replace("_info", "")
-            output_file = Path(output_dir) / f"{info_file_name}_qa_pairs.json"
-            # load qa_pairs into a file using the info_file_name as a prefix
-            with open(output_file, "w") as f:
-                json.dump(qa_pairs, f, indent=4)
-        qa_pairs_count -= 1
+    # Limit the number of files to process
+    info_files = info_files[:qa_pairs_count]
 
+    # Use ThreadPoolExecutor for multithreading
+    with ThreadPoolExecutor() as executor:
+        futures = [
+            executor.submit(process_info_file, info_file, img_width, img_height, output_dir)
+            for info_file in info_files
+        ]
+        for future in futures:
+            future.result()  # Wait for all threads to complete
 
 def check_qa_pairs(info_file: str, view_index: int):
     """
