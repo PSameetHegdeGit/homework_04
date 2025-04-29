@@ -238,7 +238,7 @@ def extract_track_info(info_path: str) -> str:
     track_name = info.get("track", "Unknown Track")
     return track_name
 
-def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img_height: int = 100):
+def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img_height: int = 100, data_dir=''):
     """
     Generate question-answer pairs for a given view.
 
@@ -265,7 +265,7 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
             {
                 "question": f"What kart is the ego car?",
                 "answer": ego_kart["kart_name"],
-                "image_file": f"{parent}_{view_index:02d}_im.jpg",
+                "image_file": f"{data_dir}/{parent}_{view_index:02d}_im.jpg",
             }
         )
 
@@ -274,7 +274,7 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
     qa_pairs.append({
         "question": "How many karts are there in the scenario?",
         "answer": str(len(kart_objects)),
-        "image_file": f"{parent}_{view_index:02d}_im.jpg",
+        "image_file": f"{data_dir}/{parent}_{view_index:02d}_im.jpg",
     })
 
     # 3. Track information questions
@@ -282,7 +282,7 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
     qa_pairs.append({
         "question": "What track is this?",
         "answer": track_name,
-        "image_file": f"{parent}_{view_index:02d}_im.jpg",
+        "image_file": f"{data_dir}/{parent}_{view_index:02d}_im.jpg",
     })
 
     # 4. Relative position questions for each kart
@@ -300,14 +300,14 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
             {
                 "question": f"Is {kart['kart_name']} to the left or right of the ego car?",
                 "answer": horizontal,
-                "image_file": f"{parent}_{view_index:02d}_im.jpg",
+                "image_file": f"{data_dir}/{parent}_{view_index:02d}_im.jpg",
             }
         )
         qa_pairs.append(
             {
                 "question": f"Is {kart['kart_name']} in front of or behind the ego car?",
                 "answer": vertical,
-                "image_file": f"{parent}_{view_index:02d}_im.jpg",
+                "image_file": f"{data_dir}/{parent}_{view_index:02d}_im.jpg",
             }
         )
 
@@ -327,41 +327,41 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
         {
             "question": "How many karts are to the left of the ego car?",
             "answer": str(left_count),
-            "image_file": f"{parent}_{view_index:02d}_im.jpg",
+            "image_file": f"{data_dir}/{parent}_{view_index:02d}_im.jpg",
         }
     )
     qa_pairs.append(
         {
             "question": "How many karts are to the right of the ego car?",
             "answer": str(right_count),
-            "image_file": f"{parent}_{view_index:02d}_im.jpg",
+            "image_file": f"{data_dir}/{parent}_{view_index:02d}_im.jpg",
         }
     )
     qa_pairs.append(
         {
             "question": "How many karts are in front of the ego car?",
             "answer": str(front_count),
-            "image_file": f"{parent}_{view_index:02d}_im.jpg",
+            "image_file": f"{data_dir}/{parent}_{view_index:02d}_im.jpg",
         }
     )
     qa_pairs.append(
         {
             "question": "How many karts are behind the ego car?",
             "answer": str(behind_count),
-            "image_file": f"{parent}_{view_index:02d}_im.jpg",
+            "image_file": f"{data_dir}/{parent}_{view_index:02d}_im.jpg",
         }
     )
 
     return qa_pairs
 
 
-def process_info_file(info_file, img_width, img_height, output_dir):
+def process_info_file(info_file, img_width, img_height, output_dir, data_dir=''):
     """
     Process a single info file and generate QA pairs for all views.
     """
     # print(f"Processing {info_file}")
     for view_index in range(10):  # Assume 10 views per file
-        qa_pairs = generate_qa_pairs(str(info_file), view_index, img_width, img_height)
+        qa_pairs = generate_qa_pairs(str(info_file), view_index, img_width, img_height, data_dir)
         info_file_name = Path(info_file).stem.replace("_info", "")
         output_file = Path(output_dir) / f"{info_file_name}_{view_index:02d}_qa_pairs.json"
         with open(output_file, "w") as f:
@@ -372,6 +372,7 @@ def generate_all_qa_pairs(info_dir: str, img_width: int = 150, img_height: int =
     Generate question-answer pairs for all info files in a directory using multithreading.
     """
     info_files = list(Path(info_dir).glob("**/*_info.json"))
+    directory_name = Path(info_dir).parts[-1]
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     print("count of info pairs:", len(info_files))
 
@@ -381,7 +382,7 @@ def generate_all_qa_pairs(info_dir: str, img_width: int = 150, img_height: int =
     # Use ThreadPoolExecutor for multithreading
     with ThreadPoolExecutor() as executor:
         futures = [
-            executor.submit(process_info_file, info_file, img_width, img_height, output_dir)
+            executor.submit(process_info_file, info_file, img_width, img_height, output_dir, directory_name)
             for info_file in info_files
         ]
         for future in futures:
@@ -436,8 +437,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    # info_path = "../data/valid/00a0b_info.json"
-    # view_index = 3
-    # print(f"{Path(info_path).stem.replace('_info', '')}_{view_index:02d}_im.jpg")
-    # output_dir = '../data/train_qa_pairs/'
+    # main()
+    info_path = "../data/valid/00a0b_info.json"
+    view_index = 3
+    print(f"{Path(info_path).stem.replace('_info', '')}_{view_index:02d}_im.jpg")
+    output_dir = '../data/train_qa_pairs/'
