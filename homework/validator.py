@@ -5,12 +5,12 @@ import fire
 
 
 def validate_image_generation():
-    with open("../data/valid_grader/balanced_qa_pairs.json") as f:
+    with open("data/valid_grader/balanced_qa_pairs.json") as f:
         validation = json.load(f)
     validation_set = {(qa["question"], qa["answer"], qa["image_file"]) for qa in validation}
     print(f"Loaded {len(validation_set)} validation samples.")
 
-    generated_files = Path("../data/valid").glob("*_qa_pairs.json")
+    generated_files = Path("data/valid").glob("*_qa_pairs.json")
     generated_set = set()
     total_generated = []
     for file in generated_files:
