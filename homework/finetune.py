@@ -203,7 +203,7 @@ def train(
     )
 
     # Train the model
-    trainer.train()
+    trainer.train(resume_from_checkpoint=True)
 
     # Save the model
     trainer.save_model(output_dir)

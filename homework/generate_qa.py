@@ -359,7 +359,7 @@ def process_info_file(info_file, img_width, img_height, output_dir):
     """
     Process a single info file and generate QA pairs for all views.
     """
-    print(f"Processing {info_file}")
+    # print(f"Processing {info_file}")
     for view_index in range(10):  # Assume 10 views per file
         qa_pairs = generate_qa_pairs(str(info_file), view_index, img_width, img_height)
         info_file_name = Path(info_file).stem.replace("_info", "")
