@@ -318,10 +318,10 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
     # How many karts are in front of the ego car?
     # How many karts are behind the ego car?
 
-    left_count = sum(1 for kart in kart_objects if kart["center"][0] <= ego_kart["center"][0])
-    right_count = sum(1 for kart in kart_objects if kart["center"][0] > ego_kart["center"][0])
-    front_count = sum(1 for kart in kart_objects if kart["center"][1] <= ego_kart["center"][1])
-    behind_count = sum(1 for kart in kart_objects if kart["center"][1] > ego_kart["center"][1])
+    left_count = sum(1 for kart in kart_objects if kart["center"][0] <= ego_kart["center"][0] and kart["instance_id"] != ego_kart["instance_id"])
+    right_count = sum(1 for kart in kart_objects if kart["center"][0] > ego_kart["center"][0] and kart["instance_id"] != ego_kart["instance_id"])
+    front_count = sum(1 for kart in kart_objects if kart["center"][1] <= ego_kart["center"][1] and kart["instance_id"] != ego_kart["instance_id"])
+    behind_count = sum(1 for kart in kart_objects if kart["center"][1] > ego_kart["center"][1] and kart["instance_id"] != ego_kart["instance_id"])
 
     qa_pairs.append(
         {
