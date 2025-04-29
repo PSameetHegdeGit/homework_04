@@ -437,8 +437,8 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    info_path = "../data/valid/00a0b_info.json"
-    view_index = 3
-    print(f"{Path(info_path).stem.replace('_info', '')}_{view_index:02d}_im.jpg")
-    output_dir = '../data/train_qa_pairs/'
+    main()
+    # info_path = "../data/valid/00a0b_info.json"
+    # view_index = 3
+    # print(f"{Path(info_path).stem.replace('_info', '')}_{view_index:02d}_im.jpg")
+    # output_dir = '../data/train_qa_pairs/'
