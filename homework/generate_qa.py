@@ -373,6 +373,7 @@ def generate_all_qa_pairs(info_dir: str, img_width: int = 150, img_height: int =
     """
     info_files = list(Path(info_dir).glob("**/*_info.json"))
     Path(output_dir).mkdir(parents=True, exist_ok=True)
+    print("count of info pairs:", len(info_files))
 
     # Limit the number of files to process
     info_files = info_files[:qa_pairs_count]
