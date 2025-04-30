@@ -310,6 +310,13 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
                 "image_file": f"{data_dir}/{parent}_{view_index:02d}_im.jpg",
             }
         )
+        qa_pairs.append(
+            {
+                "question": f"Where is {kart['kart_name']} relative to the ego car?",
+                "answer": f"{vertical} and {horizontal}",
+                "image_file": f"{data_dir}/{parent}_{view_index:02d}_im.jpg",
+            }
+        )
 
 
     # 5. Counting questions
