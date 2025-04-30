@@ -1,1 +1,6 @@
 .idea
+annotated*
+data/valid
+validation.txt
+homework/__pycache__/
+

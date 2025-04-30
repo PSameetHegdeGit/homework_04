@@ -196,7 +196,7 @@ def extract_kart_objects(
             continue
 
         # Calculate center of the bounding box
-        kart_center = ((x1 + x2) / 2, (y1 + y2) / 2)
+        kart_center = ((x1_scaled + x2_scaled) / 2, (y1_scaled + y2_scaled) / 2)
         distance_to_center = np.linalg.norm(np.array(kart_center) - np.array(image_center))
 
         if distance_to_center < min_distance:
@@ -295,7 +295,7 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
         kart_center = np.array(kart["center"])
         ego_center = np.array(ego_kart["center"])
         horizontal = "left" if kart_center[0] <= ego_center[0] else "right"
-        vertical = "front" if kart_center[1] <= ego_center[1] else "behind"
+        vertical = "front" if kart_center[1] <= ego_center[1] else "back"
         qa_pairs.append(
             {
                 "question": f"Is {kart['kart_name']} to the left or right of the ego car?",
@@ -362,7 +362,7 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
     return qa_pairs
 
 
-def process_info_file(info_file, img_width, img_height, output_dir, data_dir=''):
+def process_info_file(info_file, img_width: int = 150, img_height: int = 100, output_dir='', data_dir=''):
     """
     Process a single info file and generate QA pairs for all views.
     """
@@ -439,13 +439,16 @@ You probably need to add additional commands to Fire below.
 """
 
 
+
+
 def main():
-    fire.Fire({"check": check_qa_pairs, "generate_all": generate_all_qa_pairs})
+    fire.Fire({"check": check_qa_pairs, "generate_all": generate_all_qa_pairs, "generate": process_info_file})
 
 
 if __name__ == "__main__":
     main()
-    # info_path = "../data/valid/00a0b_info.json"
-    # view_index = 3
-    # print(f"{Path(info_path).stem.replace('_info', '')}_{view_index:02d}_im.jpg")
-    # output_dir = '../data/train_qa_pairs/'
+    # # info_path = "../data/valid/00a0b_info.json"
+    # # view_index = 3
+    # # print(f"{Path(info_path).stem.replace('_info', '')}_{view_index:02d}_im.jpg")
+    # # output_dir = '../data/train_qa_pairs/'
+    # generate_qa_pairs("../data/train/00095_info.json", 3)
